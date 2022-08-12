@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="./css//link.css">
+    <script src="./js/vue.js"></script>
+    <script src="./js/index.js"></script>
+    <script src="./js/min.js"></script>
+
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        .el-dialog {
+            top: -12vh;
+        }
+
+        .Mainpage {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            background-color: pink;
+        }
+
+        #Main {
+            position: absolute;
+            width: 90%;
+            height: 90%;
+            background-color: #ccc;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            margin: auto;
+        }
+
+        .Main_floot {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            height: 5rem;
+            line-height: 5rem;
+            margin-bottom: 2rem;
+        }
+
+        #Flootpage {
+            width: 100%;
+            height: 100%;
+            line-height: 5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+
+        }
+    </style>
+
+    <style>
+        .el-table__body-wrapper::-webkit-scrollbar {
+            /*width: 0;宽度为0隐藏*/
+            width: 0px !important;
+        }
+
+        .el-table__body-wrapper::-webkit-scrollbar-thumb {
+            border-radius: 2px;
+            height: 50px;
+            background: #eee;
+        }
+
+        .el-table__body-wrapper::-webkit-scrollbar-track {
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+            border-radius: 2px;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .Switchusers {
+            float: right;
+            margin: 0.5rem;
+            margin-right: 2rem;
+        }
+
+        .clear-input-img {
+            width: 1.1rem;
+            position: absolute;
+            top: 0;
+            right: 0;
+            margin: 0.7rem;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div id="app">
+
+        <div>
+            <el-dialog title="切换用户" :visible.sync="Switchuserss" width="50%" style="margin-top: 20vh;"
+                :before-close="handleClose" :close-on-click-modal="false">
+                <el-form :model="dynamicValidateForm" ref="dynamicValidateForm" label-width="100px"
+                    class="demo-dynamic">
+                    <!-- <el-form-item label="用户名 : " label-width="110px">
+                        <input type="text" class="search-input" v-model="dynamicValidateForm.userName"
+                            placeholder="请输入用户名">
+                    </el-form-item> -->
+                    <el-form-item label="密码 : " label-width="110px">
+                        <!-- <el-input v-model="dynamicValidateForm.password"></el-input> -->
+                        <input :type="inputchakan" @input="handleinput($event,'password')" class="search-input"
+                            v-model="dynamicValidateForm.password" placeholder="请输入密码">
+                        <a :style="{'display': chakan ? 'none' :'block' }" @click="chakanval()" href="javascript:;">
+                            <img src="./img/chakan.png" class="clear-input-img—chakan" alt="" />
+                        </a>
+                        <a href="javascript:;" :style="{'display': password ? 'none' :'block' }" @click="clearvalue()">
+
+                            <img src="./img/shanchu.png" class="clear-input-img" alt="" />
+                        </a>
+                    </el-form-item>
+                    <el-form-item style="text-align: center;">
+                        <!-- @click="submitForm('dynamicValidateForm')" -->
+                        <el-button type="primary" @click.native.prevent="tj('dynamicValidateForm')">提交</el-button>
+                    </el-form-item>
+                </el-form>
+            </el-dialog>
+            <el-row style="background-color:#C0C4CC;">
+                <el-col style="float: right;">
+                    <el-button class="Switchusers" @click="Switchusers">切换用户</el-button>
+                </el-col>
+            </el-row>
+            <div v-if="indeXA == 0">
+                <iframe src="./Taskconfiguration.html" width="100%"
+                    :height="typevalue == 1 ? typeTaskontableHeight: TaskontableHeight" frameborder="0"
+                    scrolling="no"></iframe>
+
+            </div>
+            <div v-else-if="indeXA == 1">
+                <iframe src="./datasource.html" width="100%" :height="tableHeight" frameborder="0"
+                    scrolling="no"></iframe>
+            </div>
+            <div v-else-if="indeXA == 2">
+                <iframe src="./Realtime.html" width="100%"
+                    :height="typevalue == 1 ? typeTaskontableHeight: TaskontableHeight" frameborder="0" frameborder="0"
+                    scrolling="no"></iframe>
+            </div>
+            <div class="floot" v-if="typevalue == 0 ? true : false">
+                <div class="box">
+                    <el-button type="primary" v-for="(item, index) in newarr" :key="index"
+                        :class="index == indeXA ? 'arr1' : 'arr'" @click="button(index)"><span v-text="item.name">
+                        </span>
+                    </el-button>
+                </div>
+            </div>
+
+            <div class="floot" v-if="typevalue == 2 ? true : false">
+                <div class="box">
+                    <el-button type="primary" :class="typevalue  == indeXA ? 'arr1' : 'arr'" @click="button(2)"><span>
+                            实时日志
+                        </span>
+                    </el-button>
+                </div>
+            </div>
+
+
+        </div>
+
+    </div>
+</body>
+
+</html>
+
+<script>
+    let vm = new Vue({
+        el: '#app',
+        data() {
+            return {
+                //切换用户
+                Switchuserss: false,
+                loginshow: true,
+                newarr: [
+                    { name: "任务配置" },
+                    { name: "数据源配置" },
+                    { name: "实时日志" },
+                ],
+                indeXA: 0,
+                typevalue: null,
+                dynamicValidateForm: {
+                    password: "",
+                    userName: "custom",
+                },
+                chakan: true,
+                inputchakan: 'password',
+                password: true,
+                //用户保存
+                uservalue: {},
+                tableHeight: window.innerHeight - 68, //表格动态高度
+                screenHeight: window.innerHeight, //内容区域高度
+
+
+                Taskonoptions: [],
+                TaskontableHeight: window.innerHeight - 60, //表格动态高度
+                TaskonscreenHeight: window.innerHeight, //内容区域高度
+
+
+                typeTaskontableHeight: window.innerHeight - 65, //表格动态高度
+                typeTaskonscreenHeight: window.innerHeight, //内容区域高度
+                // formvalue
+            }
+        },
+
+        created() {
+
+        },
+        mounted() {
+            if (JSON.parse(localStorage.getItem('User'))) {
+                this.typevalue = localStorage.getItem('UserType')
+                if (this.typevalue == 2) {
+                    this.indeXA = 2;
+                }
+                this.uservalue = JSON.parse(localStorage.getItem('User'))
+            } else {
+                location.href = './manager.html'
+            }
+
+        },
+        destroyed() {
+            localStorage.removeItem('UserType')
+            localStorage.removeItem('User')
+        },
+        watch: {
+            // 监听screenHeight从而改变table的高度
+            screenHeight(val) {
+                this.screenHeight = val;
+                this.tableHeight = this.screenHeight - 8;
+            },
+            typeTaskontableHeight(val) {
+                this.typeTaskonscreenHeight = val;
+                this.typeTaskontableHeight = this.screenHeight - 4;
+            },
+        },
+        methods: {
+            //关闭遮盖层
+            handleClose(done) {
+                this.dynamicValidateForm.password = '';
+                done();
+                // this.resetForm("form");
+            },
+            clearvalue(form, val) {
+                this.dynamicValidateForm.password = ''
+            },
+            handleinput(val, res) {
+                if (!val.target.value) {
+                    return this.password = true, this.chakan = true;
+                }
+
+                this.chakan = false;
+                this.password = false;
+            },
+            tj(form) {
+                this.$refs[form].validate((valid) => {
+                    if (valid) {
+                        if (this.dynamicValidateForm.password == this.uservalue.password) {
+                            // localStorage.clear()
+                            localStorage.removeItem('UserType')
+                            localStorage.removeItem('User')
+                            location.href = './manager.html'
+                        } else {
+                            this.$message({
+                                message: "密码错误!",
+                                type: "error",
+                                showClose: true,
+                            });
+                        }
+                    }
+                })
+            },
+            //查看密码
+            chakanval() {
+                this.inputchakan = this.inputchakan === 'password' ? 'text' : 'password';
+            },
+            //切换用户
+            Switchusers() {
+                this.Switchuserss = true;
+            },
+            button(e) {
+                this.indeXA = e;
+            },
+        }
+    })
+</script>
+
+
+
+<style>
+    /* #app button {
+      float: center;
+    } */
+    .clear-input-img—chakan {
+        width: 2.1rem;
+        position: absolute;
+        top: 0;
+        right: 0;
+        margin: 0.21rem 1.9rem;
+    }
+
+    .text {
+
+        height: 0.8rem;
+        line-height: 2rem;
+        color: red;
+    }
+
+    .jx {
+        position: absolute;
+        left: 0;
+        margin-left: -3.5rem;
+        color: red;
+    }
+
+    .search-input {
+        height: 2.5rem;
+        width: 100%;
+        border: 0.5px solid #cac6c6;
+        padding-left: 15px;
+        padding-right: 40px;
+        box-sizing: border-box;
+        font-size: 14px;
+        color: #000;
+        border-radius: 3px;
+        background-repeat: no-repeat;
+        background-position: 10px 13px;
+        outline-color: #40B8FA
+    }
+
+    .box {
+        width: 100%;
+        height: 4rem;
+        line-height: 4rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .arr {
+        padding: 0 3rem;
+        height: 3rem;
+        color: #fff;
+        background-color: #ccc;
+        line-height: 3rem;
+        margin: 0 2rem;
+        border: none;
+        border-radius: 20px;
+        text-align: center;
+    }
+
+    .arr1 {
+        padding: 0 3rem;
+        height: 3rem;
+        color: #fff;
+        background-color: #66b1ff;
+        line-height: 3rem;
+        margin: 0 2rem;
+        border: none;
+        border-radius: 20px;
+        text-align: center;
+    }
+
+    .floot {
+        position: fixed;
+        bottom: 2rem;
+        width: 100%;
+    }
+</style>

@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="./css//link.css">
+    <script src="./js/vue.js"></script>
+    <script src="./js/index.js"></script>
+    <script src="./js/min.js"></script>
+
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        .el-dialog {
+            top: -12vh;
+        }
+
+        .Mainpage {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            background-color: pink;
+        }
+
+        #Main {
+            position: absolute;
+            width: 90%;
+            height: 90%;
+            background-color: #ccc;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            margin: auto;
+        }
+
+        .Main_floot {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            height: 5rem;
+            line-height: 5rem;
+            margin-bottom: 2rem;
+        }
+
+        #Flootpage {
+            width: 100%;
+            height: 100%;
+            line-height: 5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+
+        }
+    </style>
+
+    <style>
+        .el-table__body-wrapper::-webkit-scrollbar {
+            /*width: 0;宽度为0隐藏*/
+            width: 0px !important;
+        }
+
+        .el-table__body-wrapper::-webkit-scrollbar-thumb {
+            border-radius: 2px;
+            height: 50px;
+            background: #eee;
+        }
+
+        .el-table__body-wrapper::-webkit-scrollbar-track {
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+            border-radius: 2px;
+            background: rgba(0, 0, 0, 0.4);
+        }
+    </style>
+
+</head>
+
+<body>
+    <div id="app">
+
+
+        <div>
+
+            <el-table v-loading="taskonloading" :data="TaskontableData" style="width: 100%;" ref="name"
+                :height="typevalue == 1 ? typeTaskontableHeight: TaskontableHeight"
+                :header-cell-style="{ textAlign: 'center', color: '#2A82E6' }">
+                <el-table-column prop="taskName" label="任务名称" align="center">
+                </el-table-column>
+                <el-table-column prop="cron" label="任务周期" align="center">
+                </el-table-column>
+                <el-table-column prop="dataSourceName" label="数据源" align="center">
+                </el-table-column>
+                <el-table-column prop="fileDirectory" label="监控目录" align="center">
+                </el-table-column>
+                <el-table-column prop="fileType" label="监控文件类型" align="center">
+                </el-table-column>
+                <el-table-column prop="remark" label="备注" align="center" v-if="typevalue != 1">
+                </el-table-column>
+                <el-table-column prop="enable" label="启/禁用" align="center" v-if="typevalue != 1">
+                    <template slot-scope="scope">
+                        <el-switch :value="scope.row.enable" @change="tokentext(scope.row)" active-color="#67C23A"
+                            inactive-color="#DCDFE6"></el-switch>
+                    </template>
+                </el-table-column>
+
+                <el-table-column label="操作" align="center">
+                    <template slot-scope="scope">
+                        <el-button type="primary" size="mini" @click="Taskonupdata(scope.row)">修改</el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <template>
+
+                <el-dialog title="修改" :visible.sync="TaskondialogVisible" width="50%" id="form"
+                    :close-on-click-modal="false">
+                    <el-form ref="Taskonform" :model="Taskonform">
+                        <el-form-item label="任务名称 : " label-width="110px">
+                            <!-- <el-input v-model="Taskonform.taskName"></el-input> -->
+                            <input type="text" class="search-input" v-model="Taskonform.taskName">
+                        </el-form-item>
+                        <el-form-item label="任务周期 : " label-width="110px" v-if="typevalue != 1">
+                            <!-- <el-input v-model="Taskonform.cron"></el-input> -->
+                            <input type="text" class="search-input" v-model="Taskonform.cron">
+                        </el-form-item>
+                        <el-form-item label="数据源 : " label-width="110px" v-if="typevalue != 1">
+                            <el-select v-model="Taskonform.dataSourceName" placeholder="请选择" @change="Taskonchange">
+                                <el-option v-for="item in Taskonoptions" :key="item.value" :label="item.label"
+                                    :value="item.dataSourceName + ' ' + item.dataTable">
+                                </el-option>
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item label="监控目录 : " label-width="110px">
+                            <el-input placeholder="请输入内容" v-model="Taskonform.fileDirectory" class="input-with-select">
+                            </el-input>
+                            <!-- <input type="text" class="search-input" v-model="Taskonform.fileDirectory"> -->
+                            <!-- webkitdirectory -->
+                            <input type="file" id="file" hidden @change="fileChange" >
+                            <!-- <el-input placeholder="请输入内容" v-model="Taskonform.fileDirectory" class="input-with-select">
+                                <el-button slot="append" icon="el-icon-folder" type="success" @click="btnChange">
+                                </el-button>
+                            </el-input> -->
+                        </el-form-item>
+                        <el-form-item label="监控文件类型 : " label-width="110px" v-if="typevalue != 1">
+                            <!-- <el-input v-model="Taskonform.fileType"></el-input> -->
+                            <input type="text" class="search-input" v-model="Taskonform.fileType">
+                        </el-form-item>
+
+                        <el-form-item label="启/禁用 : " label-width="110px" v-if="typevalue != 1">
+                            <el-switch v-model="Taskonform.enable" active-color="#67C23A" inactive-color="#DCDFE6">
+                            </el-switch>
+                        </el-form-item>
+
+                        <el-form-item label="备注 : " label-width="110px" v-if="typevalue != 1">
+                            <!-- <el-input v-model="Taskonform.remark"></el-input> -->
+                            <input type="text" class="search-input" v-model="Taskonform.remark">
+                        </el-form-item>
+
+                        <el-form-item style="text-align: center;">
+                            <el-button type="primary" @click="TaskonSubmit">提交</el-button>
+                        </el-form-item>
+                    </el-form>
+                </el-dialog>
+            </template>
+
+        </div>
+
+    </div>
+</body>
+
+</html>
+
+<script>
+    let vm = new Vue({
+        el: '#app',
+        data() {
+            return {
+                urltext: '',
+                dataTabletext: '',
+                miage: '',
+                taskonloading: true,
+                loading: true,
+                msg: '新增',
+                userform: {
+                    password: "",
+                    userName: "admin",
+                },
+                rules: {
+                    userName: [
+                        { required: true, message: "请输入用户名", trigger: "blur" },
+                        //   { max: 10, message: "不能大于10个字符", trigger: "blur" },
+                    ],
+                    password: [
+                        { required: true, message: "请输入密码", trigger: "blur" },
+                        //   { max: 10, message: "不能大于10个字符", trigger: "blur" },
+                    ],
+                },
+                loginshow: true,
+                newarr: [
+                    { name: "任务配置" },
+                    { name: "数据源配置" },
+                    // { name: "实时日志" },
+                ],
+                indeXA: 0,
+                ldshow: true,
+                tableData: [],
+                dialogVisible: false,
+                form: {
+                    dataSourceName: "",
+                    dataTable: "",
+                    url: "",
+                    userName: "",
+                    password: "",
+                    topic: "",
+                    enable: true,
+                },
+                sjyrules: {
+                    url: [
+                        { required: true, message: "地址不能为空", trigger: "blur" },
+                        //   { max: 10, message: "不能大于10个字符", trigger: "blur" },
+                    ],
+                    dataTable: [
+                        { required: true, message: "表名不能为空", trigger: "blur" },
+                        //   { max: 10, message: "不能大于10个字符", trigger: "blur" },
+                    ],
+                },
+                tableHeight: window.innerHeight - 150, //表格动态高度
+                screenHeight: window.innerHeight, //内容区域高度
+
+                TaskontableData: [],
+                TaskondialogVisible: false,
+                Taskonform: {
+                    taskName: "",
+                    cron: "",
+                    targetId: "",
+                    fileDirectory: "",
+                    fileType: "",
+                    remark: "",
+                },
+                Taskonoptions: [],
+                //表格高度判断
+                typevalue: null,
+                TaskontableHeight: window.innerHeight - 120, //表格动态高度
+                TaskonscreenHeight: window.innerHeight, //内容区域高度
+
+                typeTaskontableHeight: window.innerHeight, //表格动态高度
+                typeTaskonscreenHeight: window.innerHeight, //内容区域高度
+                // formvalue
+            }
+        },
+
+        created() {
+            // this.getdata();
+            this.Taskongetdata();
+            this.Taskongetupselect();
+            this.typevalue = localStorage.getItem('UserType')
+        },
+        mounted() {
+
+        },
+        watch: {
+            TaskonscreenHeight(val) {
+                this.TaskonscreenHeight = val;
+                this.TaskontableHeight = this.screenHeight - 4;
+            },
+            typeTaskontableHeight(val) {
+                this.typeTaskonscreenHeight = val;
+                this.typeTaskontableHeight = this.screenHeight;
+            },
+        },
+        methods: {
+            fileChange(e) {
+                try {
+                    const fu = document.getElementById('file')
+                    if (fu == null) return
+                    console.log(fu.files[0])
+                    console.log(fu.files[0].webkitRelativePath.split("/")[0])
+                    // this.Taskonform.fileDirectory = fu.files[0].webkitRelativePath
+                    // console.log(111111111111,fu.files[0].value)
+                } catch (error) {
+                    console.debug('choice file err:', error)
+                }
+            },
+            btnChange() {
+                var file = document.getElementById('file')
+                file.click()
+            },
+            getFile(event) {
+                this.file = event.target.files[0];
+                console.log(this.file);
+                this.$http.post('http://localhost:9999/realtime/manager/upload/directory', event.target.files[0].name).then((res) => {
+                    console.log(res)
+                })
+            },
+            //遮盖层关闭事件
+            handleClose(done) {
+                this.urltext = '';
+                this.dataTabletext = '';
+                done();
+                // this.resetForm("form");
+            },
+            // resetForm(form) {
+            //     this.$refs[form].resetFields();
+            // },
+            //数据源启用禁用方法
+            text(val) {
+                if (val.enable) {
+                    val.enable = false;
+                    this.getupdate(val, 1);
+                } else {
+                    val.enable = true;
+                    this.getupdate(val, 2);
+                }
+            },
+            //删除
+            deleta(val) {
+                this.miage = '删除'
+                console.log(val.dataSourceName + "-" + val.dataTable)
+                this.$confirm('删除该数据, 是否继续?', this.miage, {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    try {
+                        this.$http.put("http://localhost:9999/realtime/manager/datasource/delete/" + val.id).then(
+                            (res) => {
+                                if (res.body.code == 200) {
+                                    this.$message({
+                                        message: "删除成功!",
+                                        type: "success",
+                                    });
+                                    this.getdata();
+                                }
+                            }
+                        );
+                    } catch (e) {
+                        console.log(e);
+                    }
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消删除'
+                    });
+                });
+
+            },
+            add() {
+                this.dialogVisible = true;
+                this.reast();
+                this.addid = 1;
+                this.miage = '新增'
+            },
+            onSubmit(form) {
+                this.$refs[form].validate((valid) => {
+                    if (valid) {
+
+                        if (!this.existence(this.form.url)) {
+                            this.urltext = '地址不能为空！'
+                        } else {
+                            this.urltext = "";
+                        }
+                        if (!this.existence(this.form.dataTable)) {
+                            this.dataTabletext = '表名不能为空！';
+                        } else {
+                            this.dataTabletext = '';
+                        }
+                        if (this.form.url != '' && this.form.dataTable != '') {
+                            if (this.addid == 1) {
+                                try {
+                                    // //新增
+                                    this.$http.put("http://localhost:9999/realtime/manager/sink/inser", this.form).then((res) => {
+                                        if (res.body.code == 200) {
+                                            this.getdata();
+                                            this.$message({
+                                                message: "新增成功!",
+                                                type: "success",
+                                            });
+                                            this.addid = 0;
+                                            this.dialogVisible = false;
+                                        } else {
+                                            this.$message({
+                                                message: res.body.msg,
+                                                type: "warning",
+                                            });
+                                        }
+
+                                    })
+                                } catch (e) {
+                                    console.log(123123);
+                                }
+                            } else {
+                                //修改
+                                this.$http.put("http://localhost:9999/realtime/manager/sink/update", this.form)
+                                    .then((res) => {
+
+                                        if (res.body.code == 200) {
+                                            this.$message({
+                                                message: "修改成功!",
+                                                type: "success",
+                                            });
+                                            this.getdata();
+
+                                            this.dialogVisible = false;
+                                        } else {
+                                            this.$message({
+                                                message: res.body.msg,
+                                                type: "warning",
+                                            });
+                                        }
+                                    })
+                                    .catch((err) => {
+                                        console.log(err);
+                                    });
+                            }
+                        }
+
+                    }
+                });
+            },
+            updata(val) {
+                this.empty();
+                this.dialogVisible = true;
+                let obj = {};
+                obj.dataSourceName = val.dataSourceName;
+                obj.enable = val.enable;
+                obj.dataTable = val.dataTable;
+                obj.id = val.id;
+                obj.password = val.password;
+                obj.topic = val.topic;
+                obj.url = val.url;
+                obj.userName = val.userName;
+                this.form = obj;
+                this.miage = '修改'
+                this.addid = 0;
+            },
+            //数据源跟新
+            getupdate(val, type) {
+                this.$http.put("http://localhost:9999/realtime/manager/sink/update", val)
+                    .then((res) => {
+                        if (res.data.code == 200) {
+
+                            if (type) {
+                                if (type == 2) {
+                                    this.$message({
+                                        message: "启用成功!",
+                                        type: "success",
+                                    });
+                                } else {
+                                    this.$message({
+                                        message: "禁用成功!",
+                                        type: "success",
+                                    });
+                                }
+                            } else {
+                                this.$message({
+                                    message: "修改成功!",
+                                    type: "success",
+                                });
+                            }
+                            this.getdata();
+
+                            this.dialogVisible = false;
+                        } else {
+                            this.$message({
+                                message: res.data.msg,
+                                type: "warning",
+                            });
+                        }
+                    })
+                    .catch((err) => {
+                        console.log(err);
+                    });
+            },
+            //数据配置数据源
+            getdata() {
+                try {
+                    this.$http.get("http://localhost:9999/realtime/manager/sink/list").then((res) => {
+                        if (res.body.code == 200) {
+                            this.tableData = res.body.data
+                            this.loading = false;
+                        }
+
+                    })
+                } catch (e) {
+                    // 错误处理代码片段
+                }
+            },
+            Taskongetdata() {
+                try {
+                    this.$http.get("http://localhost:9999/realtime/manager/task/list").then((res) => {
+                        if (res.body.code == 200) {
+                            this.taskonloading = false;
+                            this.TaskontableData = res.body.data
+                        }
+                    })
+                } catch (e) {
+                    // 错误处理代码片段
+                }
+            },
+            reast() {
+                this.empty();
+            },
+            //清空
+            empty() {
+                this.form = {
+                    dataSourceName: "",
+                    url: "",
+                    userName: "",
+                    password: "",
+                    topic: "",
+                    dataTable: "",
+                    enable: true,
+                };
+            },
+            //启用禁用
+            tokentext(val) {
+                if (val.enable) {
+                    val.enable = false;
+                    this.Taskongetupdate(val, 1);
+                } else {
+                    val.enable = true;
+                    this.Taskongetupdate(val, 2);
+                }
+            },
+            //提交
+            TaskonSubmit() {
+                this.Taskongetupdate(this.Taskonform);
+            },
+            Taskongetupdate(data, type) {
+                try {
+                    this.$http.put("http://localhost:9999/realtime/manager/task/update", data).then((res) => {
+
+                        if (res.body.code == 200) {
+                            if (type) {
+                                if (type == 2) {
+                                    this.$message({
+                                        message: "启用成功!",
+                                        type: "success",
+                                    });
+                                } else {
+                                    this.$message({
+                                        message: "禁用成功!",
+                                        type: "success",
+                                    });
+                                }
+                            } else {
+                                this.$message({
+                                    message: "修改成功!",
+                                    type: "success",
+                                });
+                            }
+                            this.Taskongetdata();
+                            this.TaskondialogVisible = false;
+                        }
+                    });
+                } catch (e) {
+                    this.$message({
+                        message: "修改错误!",
+                        type: "error",
+                        showClose: true,
+                    });
+                }
+            },
+
+            //任务配置修改
+            Taskonchange(res) {
+                this.Taskonoptions.map((val) => {
+                    let name = val.dataSourceName + ' ' + val.dataTable;
+                    if (res == name) {
+                        this.Taskonform.targetId = val.id;
+                    }
+                });
+            },
+            //任务配置修改
+            Taskonupdata(val) {
+
+                this.TaskondialogVisible = true;
+
+                this.Taskonform = JSON.parse(JSON.stringify(val));
+            },
+
+            Taskongetupselect() {
+                try {
+                    this.$http.get("http://localhost:9999/realtime/manager/sink/list").then((res) => {
+                        if (res.body.code == 200) {
+                            this.Taskonoptions = res.body.data;
+                        }
+                    });
+                } catch (e) {
+                    // 错误处理代码片段
+                }
+            },
+            //值是否存在
+            existence(val) {
+                if (val) {
+                    return true
+                }
+            },
+            //输入改变
+            handleinput(val, res) {
+                if (res == 'url') {
+                    this.urltext = '';
+                } else if (res == 'dataTable') {
+                    this.dataTabletext = '';
+                }
+
+            },
+            //失去焦点
+            demo(val, res) {
+                if (res == 'url') {
+                    if (!val.target.value) {
+                        this.urltext = '地址不能为空！'
+                    }
+                } else if (res == 'dataTable') {
+                    if (!val.target.value) {
+                        this.dataTabletext = '表名不能为空！'
+                    }
+                }
+            },
+        },
+    })
+</script>
+
+
+
+<style>
+    /* #app button {
+      float: center;
+    } */
+    .text {
+
+        height: 0.8rem;
+        line-height: 2rem;
+        color: red;
+    }
+
+    .jx {
+        position: absolute;
+        left: 0;
+        margin-left: -3.5rem;
+        color: red;
+    }
+
+    .search-input {
+        height: 2.5rem;
+        width: 100%;
+        border: 0.5px solid #cac6c6;
+        padding-left: 15px;
+        padding-right: 40px;
+        box-sizing: border-box;
+        font-size: 14px;
+        color: #000;
+        border-radius: 3px;
+        background-repeat: no-repeat;
+        background-position: 10px 13px;
+        outline-color: #40B8FA
+    }
+
+    .box {
+        width: 100%;
+        height: 4rem;
+        line-height: 4rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .arr {
+        padding: 0 3rem;
+        height: 3rem;
+        color: #fff;
+        background-color: #ccc;
+        line-height: 3rem;
+        margin: 0 2rem;
+        border: none;
+        border-radius: 20px;
+        text-align: center;
+    }
+
+    .arr1 {
+        padding: 0 3rem;
+        height: 3rem;
+        color: #fff;
+        background-color: #66b1ff;
+        line-height: 3rem;
+        margin: 0 2rem;
+        border: none;
+        border-radius: 20px;
+        text-align: center;
+    }
+
+    .floot {
+        position: fixed;
+        bottom: 2rem;
+        width: 100%;
+    }
+</style>

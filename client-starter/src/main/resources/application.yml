@@ -1,0 +1,13 @@
+server:
+  port: 9999
+  servlet:
+    context-path: /realtime
+  application:
+    name: realtime-Pusher
+
+
+spring:
+  profiles:
+    active: '@profile@'
+
+

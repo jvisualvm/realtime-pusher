@@ -1,0 +1,14 @@
+spring:
+  datasource:
+    driver-class-name: org.sqlite.JDBC
+    url: jdbc:sqlite:resource/db/manager.db
+
+
+logging:
+  level:
+    root: info
+
+thread:
+  pool:
+    corePoolSize: 9
+    maximumPoolSize: 64
